@@ -1,0 +1,12 @@
+.idea/**
+
+config/*
+certificates/*.crt
+certificates/*.key
+
+temp/*
+node_modules
+bower_components
+package-lock.json
+npm-debug.log
+.vscode/*

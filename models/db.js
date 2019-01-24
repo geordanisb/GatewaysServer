@@ -1,6 +1,6 @@
 let mongoose = require('mongoose');
 let config = require('../config/index');
-let FakeDB = require('./FakeDB');
+// let FakeDB = require('./FakeDB');
 let PeripheralDevice = require('./PeripheralDevice');
 let Gateway = require('./Gateway');
 
@@ -27,43 +27,69 @@ class db{
     return await PeripheralDevice.find({gateway}).exec();
   }
 
+  async getBy(model,params){
+    return await this.proxy[model].find(params).exec();
+  }
+
   async count(document,params){
     return await this.proxy[document].count(params);
   }
 
-  // async addDevice(device,gateway){
-  //   if(!this.checkDevice(device))
-  //     return Promise.resolve(false);
+  async add(model,params){
+    params._id = new mongoose.Types.ObjectId();
+    let Model = new this.proxy[model](params);
+    return await Model.save();
+  }
 
-  //   let devices = await PeripheralDevice.find  
-  //   let pd = {
-  //     _id: new mongoose.Types.ObjectId(),
-  //     uid: device.uid,
-  //     vendor: device.vendor,
-  //     date_created: device.date_created || new Date(),       
-  //     status: device.status,
-  //     gateway: gateway                    
-  //   }
-  //   let newPeripheralDevice = PeripheralDevice(pd);
-  //   newPeripheralDevice.save(err=>{
-  //       if(err){
-  //           console.log('error ', err);
-  //           return false;
-  //       }
-  //   });
-  // }
+  async update(model,params){
+    let Model = this.proxy[model];
+    return await Model.updateOne(criteria,params);
+  }
+
+  // Tank.updateOne({ size: 'large' }, { name: 'T-90' }, function(err, res) {
+  //   // Updated at most one doc, `res.modifiedCount` contains the number
+  //   // of docs that MongoDB updated
+  // });
+
+  async delete(model,params){
+    let Model = this.proxy[model];
+    return await Model.deleteOne(params);
+  }
+
+  async addDevice(device,gateway){
+    // if(!this.checkDevice(device))
+    //   return false;
+
+    let devicesCount = await this.count('PeripheralDevice',{gateway});
+    if(devicesCount >=10){
+      console.log('error ', `There are already 10 devices on the gateway: ${gateway}`);
+      return false;
+    }      
+
+    let pd = {
+      _id: new mongoose.Types.ObjectId(),
+      uid: device.uid,
+      vendor: device.vendor,
+      date_created: device.date_created || new Date(),       
+      status: device.status,
+      gateway: gateway                    
+    }
+    try{
+      let newPeripheralDevice = PeripheralDevice(pd);
+      let res = await newPeripheralDevice.save();
+      return res;
+    }
+    catch(err){
+      console.log(err);
+      return false;
+    }    
+  }
 
   checkDevice(device){
     if(!['online','offline'].includes(device.status)){
-      console.log('Invalid status');
+      console.log('error ', 'Invalid status');
       return false;
     }
-  }
-
-
-  populateDB(){
-    const fdb = new FakeDB();
-    fdb.seedDB();
   }
 
   async cleanDB(){

@@ -1,8 +1,9 @@
 let mongoose = require('mongoose');
 let config = require('../config/index');
 // let FakeDB = require('./FakeDB');
-let PeripheralDevice = require('./PeripheralDevice');
+let Device = require('./Device');
 let Gateway = require('./Gateway');
+let User = require('./User');
 
 class db{
   constructor(){
@@ -12,89 +13,82 @@ class db{
     db.once('open', function() {      
       console.log('we\'re connected!');
     });   
-    this.proxy = {'PeripheralDevice':PeripheralDevice,'Gateway':Gateway} 
-  }
-
-  async getAll(document){
-    return await this.proxy[document].find({}).exec();
-  }
-
-  async getById(document,_id){
-    return await this.proxy[document].findOne({_id}).exec();
-  }
-
-  async getDevicesByGateway(gateway){
-    return await PeripheralDevice.find({gateway}).exec();
-  }
-
-  async getBy(model,params){
-    return await this.proxy[model].find(params).exec();
-  }
-
-  async count(document,params){
-    return await this.proxy[document].count(params);
+    this.proxy = {
+      'Device': Device,
+      'Gateway': Gateway,
+      'User': User
+    } 
   }
 
   async add(model,params){
     params._id = new mongoose.Types.ObjectId();
-    let Model = new this.proxy[model](params);
-    return await Model.save();
+    if(model !== 'Device'){
+      let Model = new this.proxy[model](params);
+      return await Model.save();
+    }
+    else{
+      return await this.addDevice(params,params.gateway);
+    }
+      
   }
 
-  async update(model,params){
+  async update(model,_id,params){
     let Model = this.proxy[model];
-    return await Model.updateOne(criteria,params);
+    return await Model.updateOne({_id},params).exec();
   }
 
-  // Tank.updateOne({ size: 'large' }, { name: 'T-90' }, function(err, res) {
-  //   // Updated at most one doc, `res.modifiedCount` contains the number
-  //   // of docs that MongoDB updated
-  // });
+  async get(model,params){
+    return await this.proxy[model].find(params).exec();
+  }
 
   async delete(model,params){
     let Model = this.proxy[model];
     return await Model.deleteOne(params);
+}
+
+  async count(model,params){
+    return await this.proxy[model].count(params);
   }
 
+  // async getAll(document){
+  //   return await this.proxy[document].find({}).exec();
+  // }
+
+  // async getById(document,_id){
+  //   return await this.proxy[document].findOne({_id}).exec();
+  // }
+
+  // async getDevicesByGateway(gateway){
+  //   return await Device.find({gateway}).exec();
+  // }
+
+
+
   async addDevice(device,gateway){
-    // if(!this.checkDevice(device))
-    //   return false;
+    
+    let oldGateway = await this.get('Gateway',{_id:gateway});
+    if(!oldGateway)
+      return {error:`Not saved, Gateway: ${device.gateway} not found`,ok:false};
 
-    let devicesCount = await this.count('PeripheralDevice',{gateway});
-    if(devicesCount >=10){
-      console.log('error ', `There are already 10 devices on the gateway: ${gateway}`);
-      return false;
-    }      
-
-    let pd = {
-      _id: new mongoose.Types.ObjectId(),
-      uid: device.uid,
-      vendor: device.vendor,
-      date_created: device.date_created || new Date(),       
-      status: device.status,
-      gateway: gateway                    
+    let devicesCount = await this.count('Device',{gateway:gateway});
+    
+    if(devicesCount >= config.device_by_gateway){
+      return {ok:false,error:`There are already ${config.device_by_gateway} devices on the gateway: ${gateway}`};
     }
+
     try{
-      let newPeripheralDevice = PeripheralDevice(pd);
-      let res = await newPeripheralDevice.save();
-      return res;
+      console.log(device)
+      let newDevice = new Device(device);
+      return await newDevice.save();
     }
-    catch(err){
-      console.log(err);
-      return false;
+    catch(error){      
+      return {error,ok:false};
     }    
   }
 
-  checkDevice(device){
-    if(!['online','offline'].includes(device.status)){
-      console.log('error ', 'Invalid status');
-      return false;
-    }
-  }
-
-  async cleanDB(){
+ async cleanDB(){
     let p1 = Gateway.deleteMany({_id: {$ne:null}}).exec();
-    let p2 = PeripheralDevice.deleteMany({_id: {$ne:null}}).exec();
+    let p2 = Device.deleteMany({_id: {$ne:null}}).exec();
     return Promise.all([p1,p2]);
   }
 }

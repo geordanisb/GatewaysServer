@@ -11,7 +11,8 @@ var gateway = new mongoose.Schema({
     _id: Schema.Types.ObjectId,
     serial_number: {type:String, unique: true, required: true},
     name: String,
-    ipv4: {type:String, 
+    ipv4: {type:String,
+      required: true, 
       validate: (value) => {
         return validator.isIP(value);
       }

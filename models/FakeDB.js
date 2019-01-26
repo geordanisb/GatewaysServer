@@ -1,5 +1,5 @@
 let Gateway = require('../models/Gateway');
-let PeripheralDevice = require('../models/PeripheralDevice');
+let Device = require('../models/Device');
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
@@ -45,7 +45,7 @@ module.exports = class FakeDB{
                 let status = ['offline','online']; 
                 for(let i of [...Array(10).keys()]){
                     let pd = {
-                        // _id: new mongoose.Types.ObjectId(),
+                        _id: new mongoose.Types.ObjectId(),
                         uid: parseInt(`${k}${i}`),
                         vendor: vendors[fnRandomPos(0,4)],
                         // date_created: new Date(),    
@@ -57,8 +57,8 @@ module.exports = class FakeDB{
                         .then(d=>console.log(d))
                         .catch(e=>console.log(e));
 
-                    // let newPeripheralDevice = PeripheralDevice(pd);
-                    // newPeripheralDevice.save(err=>{
+                    // let newDevice = Device(pd);
+                    // newDevice.save(err=>{
                     //     if(err){
                     //         console.log('error ', err);
                     //         return false;

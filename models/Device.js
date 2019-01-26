@@ -8,14 +8,17 @@ vendor (string),
 date created,
 status - online/offline.
 */
-var PeripheralDevice = new mongoose.Schema({
+var Device = new mongoose.Schema({
     _id: Schema.Types.ObjectId,
     uid: {type:Number, unique: true, required: true},
     vendor: {type:String, required: true},
     date_created: {type: Date},    
-    status:{type:String, default: ['online','offline']},
-    gateway: { type: Schema.Types.ObjectId, ref: 'Gateway' }    
+    status:{
+      type:String, 
+      required:true,
+      validate: (value)=> validator.isIn(value,['online','offline'])
+    },
+    gateway: { type: Schema.Types.ObjectId, ref: 'Gateway', required:true }    
   });
 
-  module.exports = mongoose.model('PeripheralDevice', PeripheralDevice);
-  
+  module.exports = mongoose.model('Device', Device);  

@@ -13,20 +13,20 @@ module.exports = class FakeDB{
             {
                 _id: new mongoose.Types.ObjectId(),
                 serial_number: "a1",
-                name: "Phone 1",
-                ipv4: "192.160.88.140"
+                name: "Google Gateway",
+                ipv4: "172.217.2.206"
             },
             {
                 _id: new mongoose.Types.ObjectId(),
                 serial_number: "b2",
-                name: "Phone 2",
-                ipv4: "192.168.88.135"                                
+                name: "Facebook Gateway",
+                ipv4: "31.13.67.35"                                
             },
             {
                 _id: new mongoose.Types.ObjectId(),
                 serial_number: "c3",
-                name: "Phone 3",
-                ipv4: "192.168.88.180"                
+                name: "Musala Soft",
+                ipv4: "193.17.229.200"                
             }
         ];
     }
@@ -55,18 +55,8 @@ module.exports = class FakeDB{
 
                     db.addDevice(pd,newGateway._id)
                         .then(d=>console.log(d))
-                        .catch(e=>console.log(e));
-
-                    // let newDevice = Device(pd);
-                    // newDevice.save(err=>{
-                    //     if(err){
-                    //         console.log('error ', err);
-                    //         return false;
-                    //     }
-                    // });
-                    
-                } 
-                            
+                        .catch(e=>console.log(e));                    
+                }                             
             });
         }        
     }

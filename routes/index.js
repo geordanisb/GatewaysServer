@@ -7,8 +7,12 @@ const db = new db_();
 const fdb_ = require('../models/FakeDB');
 const fdb = new fdb_();
 
+const Auth = require('../libs/auth');
+const auth = new Auth();
+const verifyJWT_MW = require('../middlewares');
+
 /* POST add/Gateway|Device. */
-router.post('/add/:model', function(req, res, next) {
+router.post('/add/:model', verifyJWT_MW,function(req, res, next) {
   db.add(req.params.model,req.body)
   .then(d=>res.json(d))
   .catch(e=>res.json(e))
@@ -21,7 +25,7 @@ router.post('/get/:model', async function(req, res, next) {
 });
 
 /* POST delete/Gateway|Device. */
-router.post('/delete/:model', async function(req, res, next) {
+router.post('/delete/:model', verifyJWT_MW,async function(req, res, next) {
   let r = await db.delete(req.params.model,req.body);
   res.json(r);
 });
@@ -33,11 +37,23 @@ router.post('/count/:model', async function(req, res, next) {
 });
 
 /* POST update/Gateway|Device. */
-router.post('/update/:model', function(req, res, next) {
+router.post('/update/:model', verifyJWT_MW,function(req, res, next) {
   let _id = req.body._id;
   db.update(req.params.model,_id,req.body)
   .then(d=>res.json(d))
   .catch(err=>res.json(err));
+});
+
+/* GET populating database. */
+router.post('/populateDB', verifyJWT_MW,function(req, res, next) {
+  fdb.seedDB();
+  res.send('database populated');
+});
+
+/* GET removing database. */
+router.post('/cleanDB', verifyJWT_MW,function(req, res, next) {
+  db.cleanDB().then(d=>console.log(d));
+  res.send('database cleaned');
 });
 
 
@@ -155,16 +171,6 @@ router.post('/update/:model', function(req, res, next) {
 // });
 
 
-/* GET populating database. */
-router.get('/populateDB', function(req, res, next) {
-  fdb.seedDB();
-  res.send('database populated');
-});
 
-/* GET removing database. */
-router.get('/cleanDB', function(req, res, next) {
-  db.cleanDB().then(d=>console.log(d));
-  res.send('database cleaned');
-});
 
 module.exports = router;

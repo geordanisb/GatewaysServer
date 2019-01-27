@@ -16,7 +16,9 @@ Developed using jasonwebtoken + bcrypt
 libs => auth.js
 middleware.js => verify if a JWTToken exist
 
-#To run and test using Postman o curl
+#Requirements
+1-npm install
+#To run (npm start) and test using Postman o curl
 1-Register a user http://127.0.0.1:8000/users/register (to see the user created: http://127.0.0.1:8000/get/User, check that not payload in request.boy are sent otherwise it will be used to get the user and password mistmacth because is hashed in db)
 2-Log in http://server:port/users/login and copy the token result;
 3-Populate the database with fake data in http://127.0.0.1:8000/populateDB (paste the token result in Headers => Authorization => Bearer token).
